@@ -1,4 +1,4 @@
-name = "food-comments"
+name = "foodcomments"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 main = "cloudflare-worker.js"
@@ -10,7 +10,7 @@ crons = ["0 14 * * *"]
 [[d1_databases]]
 binding = "DB"
 database_name = "food-comments-db"
-database_id = "YOUR_DATABASE_ID"
+database_id = "64edefb6-a8b4-48b4-8173-eeb50057c0e4"
 
 [[r2_buckets]]
 binding = "R2"
