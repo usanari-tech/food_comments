@@ -67,7 +67,7 @@ export async function getTodayMealLogs(): Promise<TodayMealLog[]> {
     ))
     .orderBy(desc(mealLogs.createdAt))
 
-    return stmt.map(s => ({
+    return stmt.map((s: any) => ({
         id: s.id,
         image_path: s.image_path,
         memo: s.memo,
