@@ -4,25 +4,32 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter"
 import { getDb } from "@/lib/db"
 import { accounts, sessions, users, verificationTokens } from "@/lib/db/schema"
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  ...authConfig,
-  adapter: (function() {
-    try {
-      const db = getDb();
-      // Proxyを渡すとUnsupported database typeとなるため、DBが確保できているか簡易チェック
-      if (!db || typeof db.select !== 'function') {
-        console.warn('Skipping DrizzleAdapter initialization: DB instance is not fully available yet.');
-        return undefined;
-      }
-      return DrizzleAdapter(db, {
-        usersTable: users,
-        accountsTable: accounts,
-        sessionsTable: sessions,
-        verificationTokensTable: verificationTokens,
-      });
-    } catch (e) {
-      console.warn('Skipping DrizzleAdapter initialization during build phase.', e);
-      return undefined;
+// Advanced Initialization pattern for Edge / Cloudflare Workers
+export const { handlers, signIn, signOut, auth } = NextAuth((req) => {
+  // req?.env またはグローバル環境変数からDBを取得
+  let db;
+  try {
+    // Cloudflare Middleware 等で req から env が取れる場合の拡張
+    const env = (req as any)?.env;
+    db = getDb(env);
+    if (db && typeof db.select !== 'function') {
+        db = undefined; // Return undefined if we got the fallback Proxy
     }
-  })(),
+  } catch (error) {
+    db = undefined;
+  }
+
+  // DB が確保できないビルドフェーズでは adapter は undefined とする
+  const adapter = db ? DrizzleAdapter(db, {
+    usersTable: users,
+    accountsTable: accounts,
+    sessionsTable: sessions,
+    verificationTokensTable: verificationTokens,
+  }) : undefined;
+
+  return {
+    ...authConfig,
+    adapter,
+  };
 })
+
