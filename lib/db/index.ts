@@ -1,6 +1,4 @@
 import { drizzle as drizzleD1 } from 'drizzle-orm/d1';
-import { drizzle as drizzleLibSQL } from 'drizzle-orm/libsql';
-import { createClient } from '@libsql/client';
 import * as schema from './schema';
 
 // Cloudflare 型宣言（型パッケージがない場合のフォールバック）
@@ -14,7 +12,7 @@ export interface Env {
   R2: R2Bucket;
 }
 
-// 実行環境（ローカルNode.js環境か、Cloudflare環境か）に応じてDBクライアントを切り替えるラッパー関数
+// D1 DBクライアントを返す関数
 export function getDb(env?: Env) {
   // 1. Cloudflare 環境など、バインディング（env.DB）が渡された場合
   if (env && env.DB) {
@@ -26,22 +24,13 @@ export function getDb(env?: Env) {
     return drizzleD1((process.env as any).DB as D1Database, { schema });
   }
 
-  // Edgeランタイムの判定
-  const isEdge = typeof EdgeRuntime === 'string' || typeof window !== 'undefined' || !('process' in globalThis);
-  if (isEdge) {
-    // Middleware等のEdge環境でローカルDB(libsql)を要求された場合、
-    // 即時にnullを返すとAuth.js初期化等でクラッシュするため、Proxyを返します
-    return new Proxy({}, {
-      get: function(target, prop) {
-        console.warn(`[getDb] Accessing DB proxy property '${String(prop)}' in Edge Runtime without env.DB`);
-        return function() { 
-          throw new Error('Database is not initialized in edge middleware yet.');
-        };
-      }
-    }) as any;
-  }
-
-  // 3. ローカル Node.js 開発環境時
-  const client = createClient({ url: 'file:local.db' });
-  return drizzleLibSQL(client, { schema });
+  // 3. それ以外（バインディング取得前）の場合、安全のためのProxyを返す
+  return new Proxy({}, {
+    get: function(target, prop) {
+      console.warn(`[getDb] Accessing DB proxy property '${String(prop)}' without env.DB`);
+      return function() { 
+        throw new Error('Database binding (env.DB) is not available yet.');
+      };
+    }
+  }) as any;
 }
