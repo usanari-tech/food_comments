@@ -9,7 +9,7 @@ type Props = {
     meal: {
         id: string
         image_path: string | null
-        memo?: string
+        memo?: string | null
         created_at: string
     }
 }

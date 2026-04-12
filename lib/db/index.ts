@@ -3,6 +3,11 @@ import { drizzle as drizzleLibSQL } from 'drizzle-orm/libsql';
 import { createClient } from '@libsql/client';
 import * as schema from './schema';
 
+// Cloudflare 型宣言（型パッケージがない場合のフォールバック）
+declare const EdgeRuntime: string | undefined;
+declare class D1Database { prepare(query: string): any; dump(): any; batch(statements: any[]): any; exec(query: string): any; }
+declare class R2Bucket { get(key: string): any; put(key: string, value: any, options?: any): any; delete(key: string): any; list(options?: any): any; head(key: string): any; }
+
 // Cloudflare バインディングの型定義
 export interface Env {
   DB: D1Database;
