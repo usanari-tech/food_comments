@@ -34,6 +34,8 @@ function getWeekOffsetForDate(dateStr: string): number {
 export default function HistoryView({
     weeklyReports,
     monthlyReports,
+}: {
+    weeklyReports: ReportSummary[]
     monthlyReports: ReportSummary[]
 }) {
     const [viewMode, setViewMode] = useState<ViewMode>('weekly')

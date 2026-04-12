@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server'
 import { getDb } from '@/lib/db'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { utcToJSTDateString } from '@/lib/timezone'
-import { getR2Client, R2_BUCKET } from '@/lib/r2'
-import { GetObjectCommand } from '@aws-sdk/client-s3'
+import { getR2Binding } from '@/lib/r2'
 import { mealLogs, dailyReports } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
@@ -22,8 +21,6 @@ export async function GET(request: Request) {
         const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!)
         const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash" }) // ユーザー指定の Gemini 3.1 Flash
         
-        const r2Client = getR2Client()
-
         // 1. 未処理のmeal_logsを取得
         const logs = await db.select()
             .from(mealLogs)
@@ -116,18 +113,17 @@ export async function GET(request: Request) {
 
                 if (meal.imagePath) {
                     try {
-                        const command = new GetObjectCommand({
-                            Bucket: R2_BUCKET,
-                            Key: meal.imagePath
-                        });
-                        const response = await r2Client.send(command);
-                        if (response.Body) {
-                            const arrayBuffer = await response.Body.transformToByteArray();
+                        const r2Url = process.env.NEXT_PUBLIC_R2_URL
+                        if (!r2Url) throw new Error("NEXT_PUBLIC_R2_URL is not set")
+                        
+                        const response = await fetch(`${r2Url}/${meal.imagePath}`)
+                        if (response.ok) {
+                            const arrayBuffer = await response.arrayBuffer()
                             const base64Data = Buffer.from(arrayBuffer).toString('base64');
                             promptParts.push({
                                 inlineData: {
                                     data: base64Data,
-                                    mimeType: response.ContentType || 'image/webp'
+                                    mimeType: response.headers.get('content-type') || 'image/webp'
                                 }
                             });
                         }

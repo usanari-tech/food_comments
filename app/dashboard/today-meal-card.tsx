@@ -12,7 +12,6 @@ type Props = {
         memo?: string
         created_at: string
     }
-    }
 }
 
 export default function TodayMealCard({ meal }: Props) {
