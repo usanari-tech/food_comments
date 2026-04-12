@@ -1,0 +1,16 @@
+name: Daily Report Cron Job
+
+on:
+  schedule:
+    # 毎日日本時間23:00 (UTC 14:00)
+    - cron: '0 14 * * *'
+  workflow_dispatch: # 手動実行用
+
+jobs:
+  run-daily-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Daily Report API
+        run: |
+          curl -X GET "${{ secrets.API_URL }}/api/cron/daily-report" \
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

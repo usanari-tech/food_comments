@@ -1,0 +1,17 @@
+name = "food-comments"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+main = "cloudflare-worker.js"
+assets = { directory = ".open-next/assets", binding = "ASSETS" }
+
+[triggers]
+crons = ["0 14 * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "food-comments-db"
+database_id = "YOUR_DATABASE_ID"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "food-comments-bucket"
