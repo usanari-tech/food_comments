@@ -1,4 +1,3 @@
-import { createClient } from '@/lib/supabase/server'
 import { getTodayMealLogs, getPastReports, getReportsByDateRange, type PastReport, type MealAnalysis } from './actions'
 import { getJSTDateString } from '@/lib/timezone'
 import { Clock, Flame } from 'lucide-react'

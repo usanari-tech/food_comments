@@ -1,38 +1,19 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { getPastReports } from './actions'
+import type { PastReport } from './actions'
 import { Loader2, AlertTriangle } from 'lucide-react'
 
-type DailyReport = {
-    id: string
-    nutritional_summary: { text: string }
-    ai_comment: string
-    score: number
-    created_at: string
-}
-
 export default function ReportView() {
-    const [report, setReport] = useState<DailyReport | null>(null)
+    const [report, setReport] = useState<PastReport | null>(null)
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         const fetchLatestReport = async () => {
-            const supabase = createClient()
-            const { data: { user } } = await supabase.auth.getUser()
-
-            if (!user) return
-
-            const { data, error } = await supabase
-                .from('daily_reports')
-                .select('*')
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .single()
-
-            if (data) {
-                setReport(data)
+            const reports = await getPastReports()
+            if (reports.length > 0) {
+                setReport(reports[0])
             }
             setLoading(false)
         }
@@ -60,17 +41,12 @@ export default function ReportView() {
                     <AlertTriangle size={18} />
                     本日の指導 (Score: {report.score})
                 </h3>
-                <span className="text-xs text-red-400">{new Date(report.created_at).toLocaleDateString()}</span>
+                <span className="text-xs text-red-400">{report.report_date}</span>
             </div>
 
             <div className="p-6 space-y-4">
-                <div>
-                    <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">Summary</h4>
-                    <p className="text-sm text-zinc-300">{report.nutritional_summary?.text}</p>
-                </div>
-
                 <div className="bg-red-950/10 p-4 rounded border border-red-900/20">
-                    <h4 className="text-xs font-bold text-red-500 uppercase tracking-wider mb-2">From Dr. S</h4>
+                    <h4 className="text-xs font-bold text-red-500 uppercase tracking-wider mb-2">AI Comment</h4>
                     <p className="text-red-300 italic font-medium leading-relaxed">
                         "{report.ai_comment}"
                     </p>
