@@ -18,11 +18,9 @@ type MealAnalysis = {
 export default function CollapsibleReport({
     report,
     meals,
-    supabaseUrl,
 }: {
     report: ReportSummary
     meals?: MealAnalysis[]
-    supabaseUrl: string
 }) {
     const [isOpen, setIsOpen] = useState(false)
 
@@ -77,7 +75,7 @@ export default function CollapsibleReport({
                                     <div className="flex gap-3">
                                         {meal.image_path && (
                                             <ImageWithZoom
-                                                src={`${supabaseUrl}/storage/v1/object/public/meal_photos/${meal.image_path}`}
+                                                src={`${process.env.NEXT_PUBLIC_R2_URL || ''}/${meal.image_path}`}
                                                 alt={meal.menu_name}
                                                 className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden shadow-sm"
                                             />

@@ -8,7 +8,7 @@ import HistoryView from './history-view'
 import ShareButton from './components/share-button'
 
 // コンポーネント定義
-const MealCard = ({ meal, index, supabaseUrl }: { meal: MealAnalysis; index: number; supabaseUrl: string }) => {
+const MealCard = ({ meal, index }: { meal: MealAnalysis; index: number }) => {
     const time = meal.created_at
         ? new Date(meal.created_at).toLocaleTimeString('ja-JP', {
             hour: '2-digit',
@@ -25,7 +25,7 @@ const MealCard = ({ meal, index, supabaseUrl }: { meal: MealAnalysis; index: num
             <div className="flex gap-4">
                 {meal.image_path && (
                     <ImageWithZoom
-                        src={`${supabaseUrl}/storage/v1/object/public/meal_photos/${meal.image_path}`}
+                        src={`${process.env.NEXT_PUBLIC_R2_URL || ''}/${meal.image_path}`}
                         alt={meal.menu_name}
                         className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden shadow-sm"
                     />
@@ -93,7 +93,7 @@ const ReportCard = ({ report, isLatest = false }: { report: PastReport; isLatest
             {report.meals.length > 0 ? (
                 <div className="space-y-3">
                     {report.meals.map((meal, i) => (
-                        <MealCard key={i} meal={meal} index={i} supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL!} />
+                        <MealCard key={i} meal={meal} index={i} />
                     ))}
                 </div>
             ) : (
@@ -144,7 +144,7 @@ export default async function DashboardContent() {
     ])
 
     const latestReport = reports[0]
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const r2Url = process.env.NEXT_PUBLIC_R2_URL
 
     return (
         <main className="max-w-lg mx-auto px-4 py-6 pb-24 space-y-6">
@@ -180,7 +180,6 @@ export default async function DashboardContent() {
                             <TodayMealCard
                                 key={meal.id}
                                 meal={meal}
-                                supabaseUrl={supabaseUrl!}
                             />
                         ))}
                     </div>
@@ -209,7 +208,6 @@ export default async function DashboardContent() {
             <HistoryView
                 weeklyReports={weeklyReports}
                 monthlyReports={monthlyReports}
-                supabaseUrl={supabaseUrl!}
             />
         </main>
     )

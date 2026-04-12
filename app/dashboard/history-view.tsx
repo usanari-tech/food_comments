@@ -34,11 +34,7 @@ function getWeekOffsetForDate(dateStr: string): number {
 export default function HistoryView({
     weeklyReports,
     monthlyReports,
-    supabaseUrl,
-}: {
-    weeklyReports: ReportSummary[]
     monthlyReports: ReportSummary[]
-    supabaseUrl: string
 }) {
     const [viewMode, setViewMode] = useState<ViewMode>('weekly')
     const [selectedWeekOffset, setSelectedWeekOffset] = useState(0)
@@ -81,7 +77,6 @@ export default function HistoryView({
             {viewMode === 'weekly' ? (
                 <WeeklyView
                     initialReports={weeklyReports}
-                    supabaseUrl={supabaseUrl}
                     initialWeekOffset={selectedWeekOffset}
                 />
             ) : (

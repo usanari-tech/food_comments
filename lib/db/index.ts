@@ -24,9 +24,16 @@ export function getDb(env?: Env) {
   // Edgeランタイムの判定
   const isEdge = typeof EdgeRuntime === 'string' || typeof window !== 'undefined' || !('process' in globalThis);
   if (isEdge) {
-    // Middleware等のEdge環境でローカルDBを引こうとすると落ちるため、一時的なフォールバックを返す
-    // ※ Cloudflare環境であれば先に env.DB などで処理される前提
-    return null as any; 
+    // Middleware等のEdge環境でローカルDB(libsql)を要求された場合、
+    // 即時にnullを返すとAuth.js初期化等でクラッシュするため、Proxyを返します
+    return new Proxy({}, {
+      get: function(target, prop) {
+        console.warn(`[getDb] Accessing DB proxy property '${String(prop)}' in Edge Runtime without env.DB`);
+        return function() { 
+          throw new Error('Database is not initialized in edge middleware yet.');
+        };
+      }
+    }) as any;
   }
 
   // 3. ローカル Node.js 開発環境時

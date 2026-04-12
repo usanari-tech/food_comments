@@ -12,10 +12,10 @@ type Props = {
         memo?: string
         created_at: string
     }
-    supabaseUrl: string
+    }
 }
 
-export default function TodayMealCard({ meal, supabaseUrl }: Props) {
+export default function TodayMealCard({ meal }: Props) {
     const [isDeleting, setIsDeleting] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
 
@@ -43,7 +43,7 @@ export default function TodayMealCard({ meal, supabaseUrl }: Props) {
         <div className="card overflow-hidden animate-fade-in relative">
             <div className="aspect-square relative overflow-hidden">
                 <ImageWithZoom
-                    src={`${supabaseUrl}/storage/v1/object/public/meal_photos/${meal.image_path}`}
+                    src={`${process.env.NEXT_PUBLIC_R2_URL || ''}/${meal.image_path}`}
                     alt="食事"
                     className="w-full h-full"
                 />

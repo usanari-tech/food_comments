@@ -10,7 +10,7 @@ type FileWithPreview = {
     id: string
 }
 
-import { getPresignedUploadUrl, saveMealLog } from './actions'
+import { uploadMealImageAction, saveMealLog } from './actions'
 
 export default function UploadForm({ onSuccess }: { onSuccess?: () => void }) {
     const [files, setFiles] = useState<FileWithPreview[]>([])
@@ -71,24 +71,18 @@ export default function UploadForm({ onSuccess }: { onSuccess?: () => void }) {
                     const compressedFile = await imageCompression(file, options)
                     const fileName = `${Date.now()}.webp`
                     
-                    // 1. Presigned URL を取得
-                    const { url, key } = await getPresignedUploadUrl(fileName, 'image/webp')
+                    // 新しい方式: Server ActionへFormDataで送信し、Edge Functionから直接R2 Binding経由でアップロード
+                    const formData = new FormData()
+                    formData.append('file', compressedFile)
+                    formData.append('fileName', fileName)
 
-                    // 2. R2 に PUT してアップロード
-                    const res = await fetch(url, {
-                        method: 'PUT',
-                        body: compressedFile,
-                        headers: {
-                            'Content-Type': 'image/webp'
-                        }
-                    })
-
-                    if (!res.ok) {
-                        throw new Error(`Upload failed: ${res.statusText}`)
+                    const result = await uploadMealImageAction(formData)
+                    if (!result.success) {
+                        throw new Error('Upload failed on server')
                     }
 
                     // 3. DBに保存
-                    await saveMealLog({ imagePath: key, memo })
+                    await saveMealLog({ imagePath: result.key, memo })
                 }
             } else if (memo.trim() !== '') {
                 // 画像なし、メモのみの場合

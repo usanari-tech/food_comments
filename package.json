@@ -26,14 +26,15 @@
   },
   "devDependencies": {
     "@opennextjs/cloudflare": "^1.17.1",
-    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.27",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
-    "tailwindcss": "^4",
+    "postcss": "^8.5.9",
+    "tailwindcss": "^3.4.19",
     "typescript": "^5",
     "wrangler": "^4.80.0"
   }

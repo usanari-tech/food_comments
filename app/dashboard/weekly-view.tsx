@@ -35,11 +35,9 @@ function formatDateRange(start: string, end: string): string {
 
 export default function WeeklyView({
     initialReports,
-    supabaseUrl,
     initialWeekOffset = 0,
 }: {
     initialReports: ReportSummary[]
-    supabaseUrl: string
     initialWeekOffset?: number
 }) {
     const [weekOffset, setWeekOffset] = useState(initialWeekOffset)
@@ -184,8 +182,6 @@ export default function WeeklyView({
                         <CollapsibleReport
                             key={report.id}
                             report={report}
-                            meals={report.meals}
-                            supabaseUrl={supabaseUrl}
                         />
                     ))}
                 </div>

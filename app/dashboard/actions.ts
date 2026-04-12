@@ -5,16 +5,22 @@ import { auth } from '@/auth'
 import { getJSTDateString, getJSTDayRange } from '@/lib/timezone'
 import { mealLogs, dailyReports } from '@/lib/db/schema'
 import { eq, desc, and, gte, lte } from 'drizzle-orm'
-import { generateUploadUrl } from '@/lib/r2'
+import { uploadImageToR2 } from '@/lib/r2'
 
-export async function getPresignedUploadUrl(fileName: string, contentType: string) {
+export async function uploadMealImageAction(formData: FormData) {
     const session = await auth()
     if (!session?.user?.id) throw new Error("Unauthorized")
     
-    // session.user.id をプレフィックスにするなど安全なキーを生成
+    const file = formData.get('file') as File
+    const fileName = formData.get('fileName') as string
+    
+    if (!file || !fileName) throw new Error("Invalid request")
+
     const key = `${session.user.id}/${fileName}`
-    const url = await generateUploadUrl(key, contentType)
-    return { url, key }
+    const arrayBuffer = await file.arrayBuffer()
+    
+    await uploadImageToR2(key, arrayBuffer, file.type)
+    return { success: true, key }
 }
 
 export async function saveMealLog({ imagePath, memo }: { imagePath: string | null, memo: string | null }) {
