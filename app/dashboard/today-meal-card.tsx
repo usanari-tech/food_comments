@@ -8,7 +8,7 @@ import ImageWithZoom from './image-with-zoom'
 type Props = {
     meal: {
         id: string
-        image_path: string
+        image_path: string | null
         memo?: string
         created_at: string
     }
