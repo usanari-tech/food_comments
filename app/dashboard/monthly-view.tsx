@@ -78,7 +78,7 @@ export default function MonthlyView({
     const avgScore = activeReports.length > 0
         ? Math.round(activeReports.reduce((a, r) => a + r.score, 0) / activeReports.length)
         : 0
-    const totalCalories = reports.reduce((a, r) => a + r.total_calories, 0)
+    const totalCalories = reports.reduce((a, r) => a + (r.total_calories || 0), 0)
 
     const isCurrentMonth = monthOffset === 0
 

@@ -46,7 +46,7 @@ export default function CollapsibleReport({
                         <div className="font-semibold text-gray-900 text-sm">{dateLabel}</div>
                         <div className="text-xs text-gray-400 flex items-center gap-1">
                             <Utensils size={10} />
-                            {report.meal_count}食 · {report.total_calories.toLocaleString()} kcal
+                            {report.meal_count}食 · {(report.total_calories || 0).toLocaleString()} kcal
                         </div>
                     </div>
                 </div>

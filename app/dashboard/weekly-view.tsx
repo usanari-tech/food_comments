@@ -85,7 +85,7 @@ export default function WeeklyView({
     const avgScore = activeReports.length > 0
         ? Math.round(activeReports.reduce((a, r) => a + r.score, 0) / activeReports.length)
         : 0
-    const totalCalories = reports.reduce((a, r) => a + r.total_calories, 0)
+    const totalCalories = reports.reduce((a, r) => a + (r.total_calories || 0), 0)
     const totalMeals = reports.reduce((a, r) => a + r.meal_count, 0)
 
     const isCurrentWeek = weekOffset === 0
