@@ -33,7 +33,7 @@ export async function GET(request: Request) {
 
         // 2. ユーザーごと × JST日付ごとにグループ化
         const userDateLogs: { [key: string]: typeof logs } = {}
-        logs.forEach(log => {
+        logs.forEach((log: any) => {
             const jstDate = utcToJSTDateString(log.createdAt?.toISOString() || new Date().toISOString())
             const groupKey = `${log.userId}__${jstDate}`
             if (!userDateLogs[groupKey]) userDateLogs[groupKey] = []
