@@ -24,8 +24,8 @@ export function getDb(env?: Env) {
   // 2. @opennextjs/cloudflareのコンテキストから安全に取得
   try {
     const cfCtx = getCloudflareContext();
-    if (cfCtx && cfCtx.env && cfCtx.env.DB) {
-      return drizzleD1(cfCtx.env.DB as D1Database, { schema });
+    if (cfCtx && cfCtx.env && (cfCtx.env as any).DB) {
+      return drizzleD1((cfCtx.env as any).DB as D1Database, { schema });
     }
   } catch (e) {
     // ignored (may throw in static build env)
