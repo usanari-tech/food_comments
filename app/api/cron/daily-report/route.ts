@@ -1,9 +1,28 @@
 import { NextResponse } from 'next/server'
 import { getDb } from '@/lib/db'
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { utcToJSTDateString } from '@/lib/timezone'
 import { mealLogs, dailyReports } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
+
+// SDKを使わずfetchで直接Gemini REST APIを呼び出す
+async function callGeminiRest(apiKey: string, model: string, parts: any[]): Promise<string> {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+    // 文字列パーツを { text: string } 形式に正規化
+    const normalizedParts = parts.map((p: any) =>
+        typeof p === 'string' ? { text: p } : p
+    )
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: normalizedParts }] }),
+    })
+    if (!res.ok) {
+        const errText = await res.text()
+        throw new Error(`Gemini API error ${res.status}: ${errText}`)
+    }
+    const data = await res.json() as any
+    return data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+}
 
 export async function GET(request: Request) {
     const cronSecret = request.headers.get('x-cf-cron-secret') || process.env.CRON_SECRET;
@@ -18,9 +37,11 @@ export async function GET(request: Request) {
 
     try {
         const db = getDb()
-        const aiKey = request.headers.get('x-cf-google-api-key') || process.env.GOOGLE_AI_API_KEY;
-        const genAI = new GoogleGenerativeAI(aiKey as string)
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }) 
+        const apiKey = request.headers.get('x-cf-google-api-key') || process.env.GOOGLE_AI_API_KEY
+        if (!apiKey) {
+            return new NextResponse('GOOGLE_AI_API_KEY is not set', { status: 500 })
+        }
+        const geminiModel = 'gemini-3.1-flash-lite-preview'
         
         // 1. 未処理のmeal_logsを取得
         const logs = await db.select()
@@ -140,11 +161,9 @@ export async function GET(request: Request) {
                 }
             }
 
-            // Gemini API呼び出し
+            // Gemini API呼び出し（fetch直接）
             try {
-                const result = await model.generateContent(promptParts)
-                const response = result.response
-                let text = response.text()
+                let text = await callGeminiRest(apiKey, geminiModel, promptParts)
 
                 text = text.replace(/```json/g, '').replace(/```/g, '').trim()
 
