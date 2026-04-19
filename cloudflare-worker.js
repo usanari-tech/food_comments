@@ -12,18 +12,17 @@ export default {
         // あるいはOpenNextのfetchをダミーリクエストで無理やり呼び出すことも可能。
         // 最も確実なのは fetch() で自分のAPIルートへリクエストを飛ばす方法。
 
-        const apiUrl = `https://food-comments.usanari-tech.workers.dev/api/cron/daily-report`;
+        const req = new Request("http://localhost/api/cron/daily-report", {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${env.CRON_SECRET}`,
+            },
+        });
 
-        console.log(`Cron triggered: Fetching ${apiUrl}`);
+        console.log(`Cron triggered: Executing OpenNext handler internally`);
 
         try {
-            const resp = await fetch(apiUrl, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${env.CRON_SECRET}`,
-                },
-            });
-
+            const resp = await openNextWorker.fetch(req, env, ctx);
             const text = await resp.text();
             console.log(`Cron execution result: ${resp.status}`, text);
         } catch (error) {
