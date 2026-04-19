@@ -2,24 +2,25 @@ import { NextResponse } from 'next/server'
 import { getDb } from '@/lib/db'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { utcToJSTDateString } from '@/lib/timezone'
-import { getR2Binding } from '@/lib/r2'
 import { mealLogs, dailyReports } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 export async function GET(request: Request) {
+    const cronSecret = request.headers.get('x-cf-cron-secret') || process.env.CRON_SECRET;
     // セキュリティチェック
     const authHeader = request.headers.get('authorization')
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (authHeader !== `Bearer ${cronSecret}`) {
         const { searchParams } = new URL(request.url)
-        if (searchParams.get('key') !== process.env.CRON_SECRET) {
+        if (searchParams.get('key') !== cronSecret) {
             return new NextResponse('Unauthorized', { status: 401 })
         }
     }
 
     try {
         const db = getDb()
-        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!)
-        const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash" }) // ユーザー指定の Gemini 3.1 Flash
+        const aiKey = request.headers.get('x-cf-google-api-key') || process.env.GOOGLE_AI_API_KEY;
+        const genAI = new GoogleGenerativeAI(aiKey as string)
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }) 
         
         // 1. 未処理のmeal_logsを取得
         const logs = await db.select()
